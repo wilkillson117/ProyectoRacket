@@ -1,0 +1,62 @@
+#lang sketching
+
+(define n 40) ; Número de elementos en la lista
+(define valores (build-list n (lambda (_) (random 1 101)))) ; Lista de valores aleatorios entre 1 y 100
+(define i 0) ; Índice de paso exterior del algoritmo
+(define j 0) ; Índice de paso interior del algoritmo
+(define contador 0) ; Contador de comparaciones
+(define ancho-barra (/ 640 n)) ; Ancho de cada barra en función de la ventana
+
+(define (list-set lst idx val)
+  ; Función personalizada para actualizar un valor en una lista
+  (map (lambda (item i) (if (= i idx) val item))
+       lst
+       (let loop ([i 0] [res '()])
+         (if (= i (length lst)) (reverse res) (loop (+ i 1) (cons i res))))))
+
+(define (draw-values valores)
+  ; Dibuja las barras en función de los valores en la lista
+  (let loop ([indice 0])
+    (when (< indice n)
+      (define valor (list-ref valores indice))
+      (define x (* indice ancho-barra))
+      (define y (- 360 valor))
+      (fill 200 0 0) ; Color rojo con un tono más bajo
+      (rect x y ancho-barra valor)
+      (loop (+ indice 1)))))
+
+(define (bubble-sort-step valores)
+  ; Realiza un paso del algoritmo de ordenación burbuja en la lista de valores
+  (cond
+    [(>= i (- n 1)) valores] ; Si hemos completado el proceso, devolvemos la lista
+    [(>= j (- n i 1))
+     (set! i (+ i 1))
+     (set! j 0)
+     valores]
+    [(> (list-ref valores j) (list-ref valores (+ j 1)))
+     ; Si el valor actual es mayor que el siguiente, los intercambiamos
+     (set! valores (list-set (list-set valores j (list-ref valores (+ j 1))) (+ j 1) (list-ref valores j)))
+     (set! j (+ j 1))
+     (set! contador (+ contador 1))
+     valores]
+    [else
+     (set! j (+ j 1))
+     (set! contador (+ contador 1))
+     valores]))
+
+(define (draw)
+  ; Función de dibujo principal
+  (background 0) ; Fondo negro
+  (draw-values valores)
+  (fill 255 255 255) ; Texto en blanco
+  (text (string-append "Contador: " (number->string contador)) 10 20)
+  (set! valores (bubble-sort-step valores)))
+
+(define (setup)
+  ; Configuración inicial de la ventana
+  (size 640 360)
+  (frame-rate 30)
+  (color-mode 'rgb)
+  (background 0))
+
+(setup)
